@@ -1,14 +1,25 @@
 import { Router } from 'express';
+import multer from "multer";
+import { getCustomRepository } from 'typeorm';
 
 import TransactionsRepository from '../repositories/TransactionsRepository';
 import CreateTransactionService from '../services/CreateTransactionService';
 import CreateCategoryService from '../services/CreateCategoryService';
-import { getCustomRepository } from 'typeorm';
 import DeleteTransactionService from '../services/DeleteTransactionService';
-// import DeleteTransactionService from '../services/DeleteTransactionService';
-// import ImportTransactionsService from '../services/ImportTransactionsService';
+import ImportTransactionsService from '../services/ImportTransactionsService';
 
 const transactionsRouter = Router();
+
+import uploadConfig from '../config/upload';
+
+const upload = multer(uploadConfig);
+
+interface RequestDTO {
+  title: string,
+  type: 'income' | 'outcome',
+  value: number,
+  category: string
+}
 
 transactionsRouter.get('/', async (request, response) => {
   const transactionsRepository = getCustomRepository(TransactionsRepository);
@@ -43,8 +54,19 @@ transactionsRouter.delete('/:id', async (request, response) => {
   return response.status(204).send();
 });
 
-transactionsRouter.post('/import', async (request, response) => {
-  // TODO
+transactionsRouter.post('/import', upload.single('file'), async (request, response) => {
+  
+  // const transactions: RequestDTO[] = [
+  //   { title: 'Loan1', type:'income', value: 600, category: 'Others' },
+  //   { title: 'Loan2', type:'income', value: 700, category: 'Others' },
+  //   { title: 'Loan3', type:'income', value: 800, category: 'Others' },
+  //   { title: 'Loan4', type:'income', value: 900, category: 'Others4' },
+  // ]
+
+  const importTransactionService = new ImportTransactionsService();
+  const transactions =  await importTransactionService.execute(request.file.path);
+
+  return response.json(transactions);
 });
 
 export default transactionsRouter;
