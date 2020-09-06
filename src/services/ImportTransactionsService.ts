@@ -14,7 +14,7 @@ interface Request {
   title: string;
   type: 'income' | 'outcome';
   value: number;
-  category: string;
+  category: Category;
 }
 class ImportTransactionsService {
   async execute(filePath: string): Promise<Transaction[]> {
@@ -69,8 +69,8 @@ class ImportTransactionsService {
         type: transaction.type,
         value: transaction.value,
         category: finalCategories.find(
-          c => c.title === transaction.category
-          )?.id,
+            c => c.title === transaction.category.title
+          )
         }))
     );
 
